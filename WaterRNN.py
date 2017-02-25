@@ -7,6 +7,7 @@ import time, csv
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
+from keras.optimizers import RMSprop, Adam, Adadelta, Adagrad, Nadam
 
 #keep fixed for reproducibility
 np.random.seed(123)
@@ -34,14 +35,15 @@ def get_data(sequence_length=15):
 
 def build_model_simp():
     model = Sequential()
-    layers = [3, 50, 1]
-
-    model.add(LSTM(layers[1], input_shape=(15, 3)))
-    model.add(Dense(layers[2]))
+    layers = [3, 25, 50, 1]
+    
+    model.add(LSTM(output_dim=layers[2], input_length=15, input_dim=layers[0], return_sequences=True))
+    model.add(LSTM(output_dim=layers[3], input_length=15, input_dim=layers[1], return_sequences=True))
     model.add(Activation('linear'))
 
     start = time.time()
-    model.compile(loss='mse', optimizer='rmsprop')
+    optimizer = RMSprop(lr=0.01)
+    model.compile(loss='mse', optimizer=optimizer)
     print 'Compilation Time : ', time.time() - start
     
     return model
@@ -51,15 +53,11 @@ def build_model_simp_n_drop():
     model = Sequential()
     layers = [3, 50, 1]
 
-    model.add(LSTM(
-        input_dim=layers[0],
-        output_dim=layers[1],
-        return_sequences=True))
+    model.add(LSTM(input_dim=layers[0], output_dim=layers[1], return_sequences=True))
     
     model.add(Dropout(0.3))
 
-    model.add(Dense(
-        output_dim=layers[2]))
+    model.add(Dense(output_dim=layers[2]))
     model.add(Activation("linear"))
 
     start = time.time()
@@ -97,7 +95,7 @@ def build_model_multi():
 
 def run_network(model='simp'):
     global_start_time = time.time()
-    epochs = 10
+    epochs = 25
     
     X_train, y_train, X_test, y_test = get_data()
 
@@ -114,12 +112,11 @@ def run_network(model='simp'):
     
     predicted = model.predict(X_test)
     predicted = np.reshape(predicted, (predicted.size,))
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(y_test[:100])
-    plt.plot(predicted[:100])
-    plt.show()
+    
+    print np.array(predicted).reshape(y_test.shape) - y_test
+    
+    scores = model.evaluate(X_test, y_test, verbose=0)
+    print scores
     
     print 'Training duration (s) : ', time.time() - global_start_time
     
