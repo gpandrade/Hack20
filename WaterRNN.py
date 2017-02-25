@@ -1,14 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import time
-import csv
+
+import time, csv
+
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 
 #keep fixed for reproducibility
 np.random.seed(123)
-
 
 
 def build_model_simp():
@@ -21,12 +21,13 @@ def build_model_simp():
         return_sequences=True))
 
     model.add(Dense(output_dim=layers[2]))
-    model.add(Activation("linear"))
+    model.add(Activation('linear'))
 
     start = time.time()
-    model.compile(loss="mse", optimizer="rmsprop")
-    print "Compilation Time : ", time.time() - start
-return model
+    model.compile(loss='mse', optimizer='rmsprop')
+    print 'Compilation Time : ', time.time() - start
+	
+	return model
 
 
 def build_model_simp_n_drop():
@@ -46,7 +47,9 @@ def build_model_simp_n_drop():
     start = time.time()
     model.compile(loss="mse", optimizer="rmsprop")
     print "Compilation Time : ", time.time() - start
-return model
+
+    return model
+
 
 def build_model_multi():
     model = Sequential()
